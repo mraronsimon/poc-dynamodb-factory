@@ -1,94 +1,40 @@
-
-
 # PocDynamodbFactory
 
-This project was generated using [Nx](https://nx.dev).
+I want to create a type-safe dynamodb schema builder for Single Table Design.  
 
-<p style="text-align: center;"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="450"></p>
+## Structure
 
-🔎 **Smart, Fast and Extensible Build System**
+* In **one table**, we store **multiple document-type**. (semantic unit)
+  * e.g.: *User, UserGroup*
+* For **one document-type** we store **multiple record-type**. (physical unit)
+  * e.g.: *User_Details (node), UserGroup_Details (node), User_UserGroup (edge)*
+* One **record-type** contains following columns:
+  * **document:**: serialized representation of **document**
+  * **document-type**: type of document
+  * **document-id**: the owner document of the record *(merge with the prev one?)*
+  * **record-type**: type of record
+  * **PK**: partition key of primary key *(calculated from document)*
+  * **SK**: short key of primary key *(optional, calculated from document)*
+  * **indexes**: GSIs, LSIs *(calculated from document)*
+  * **TTLs**: *(calculated from document)*
 
-## Adding capabilities to your workspace
+## Statements
+  * Content of calculated columns (PK/SK/indexes/TTLs) not means the same thing for all document-type/record-type
+    * Column name should be like PK/SK/GSI_n_PK/GSI_n_SK/TTL_m
+    * Every record-type must have a mapping function for each calculated column
+  * Columns are calculated
+    * We don't need to use the same column for many indexes (like SK#GSI_1_PK)
 
-Nx supports many plugins which add capabilities for developing different types of applications and different tools.
-
-These capabilities include generating applications, libraries, etc as well as the devtools to test, and build projects as well.
-
-Below are our core plugins:
-
-- [React](https://reactjs.org)
-  - `npm install --save-dev @nrwl/react`
-- Web (no framework frontends)
-  - `npm install --save-dev @nrwl/web`
-- [Angular](https://angular.io)
-  - `npm install --save-dev @nrwl/angular`
-- [Nest](https://nestjs.com)
-  - `npm install --save-dev @nrwl/nest`
-- [Express](https://expressjs.com)
-  - `npm install --save-dev @nrwl/express`
-- [Node](https://nodejs.org)
-  - `npm install --save-dev @nrwl/node`
-
-There are also many [community plugins](https://nx.dev/community) you could add.
-
-## Generate an application
-
-Run `nx g @nrwl/react:app my-app` to generate an application.
-
-> You can use any of the plugins above to generate applications as well.
-
-When using Nx, you can create multiple applications and libraries in the same workspace.
-
-## Generate a library
-
-Run `nx g @nrwl/react:lib my-lib` to generate a library.
-
-> You can also use any of the plugins above to generate libraries as well.
-
-Libraries are shareable across libraries and applications. They can be imported from `@poc-dynamodb-factory/mylib`.
-
-## Development server
-
-Run `nx serve my-app` for a dev server. Navigate to http://localhost:4200/. The app will automatically reload if you change any of the source files.
-
-## Code scaffolding
-
-Run `nx g @nrwl/react:component my-component --project=my-app` to generate a new component.
-
-## Build
-
-Run `nx build my-app` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `nx test my-app` to execute the unit tests via [Jest](https://jestjs.io).
-
-Run `nx affected:test` to execute the unit tests affected by a change.
-
-## Running end-to-end tests
-
-Run `nx e2e my-app` to execute the end-to-end tests via [Cypress](https://www.cypress.io).
-
-Run `nx affected:e2e` to execute the end-to-end tests affected by a change.
-
-## Understand your workspace
-
-Run `nx graph` to see a diagram of the dependencies of your projects.
-
-## Further help
-
-Visit the [Nx Documentation](https://nx.dev) to learn more.
-
-
-
-## ☁ Nx Cloud
-
-### Distributed Computation Caching & Distributed Task Execution
-
-<p style="text-align: center;"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-cloud-card.png"></p>
-
-Nx Cloud pairs with Nx in order to enable you to build and test code more rapidly, by up to 10 times. Even teams that are new to Nx can connect to Nx Cloud and start saving time instantly.
-
-Teams using Nx gain the advantage of building full-stack applications with their preferred framework alongside Nx’s advanced code generation and project dependency graph, plus a unified experience for both frontend and backend developers.
-
-Visit [Nx Cloud](https://nx.app/) to learn more.
+## Build a table
+1. Build the **table structure** first
+    1. Select **Primary-key**
+        * simple: *PK*
+        * composite: *PK* + *SK*
+    1. Add **GSIs** with name
+        * simple: *GSI\_\<name\>\_PK*
+        * composite: *GSI_\<name\>\_PK* + *GSI\_\<name\>\_SK*
+    1. Add **LSIs** with name
+        * *LSI\_\<name\>\_SK*
+    1. Add **TTLs** with name
+        * *TTL\_\<name\>*
+1. Add document-type / record-type
