@@ -29,7 +29,7 @@ type DyDoc_TableConfiguration = {
   documents: { [documentType: string]: unknown },
 }
 
-type DyDoc_RecordType<
+export type DyDoc_RecordType<
   T_table extends DyDoc_TableConfiguration,
 > = {
   [
@@ -97,11 +97,11 @@ type DyDoc_TableSchemaBuilder<
   finalizeTableSchema(): DyDoc_TableDocumentBuilder<T_table>;
 };
 
-type DyDoc_BaseDocumentType = {
+export type DyDoc_BaseDocumentType = {
   documentType: string;
 };
 
-type DyDoc_TableDocumentBuilder<
+export type DyDoc_TableDocumentBuilder<
   T_table extends DyDoc_TableConfiguration,
   > = {
   addDocumentType<
@@ -117,50 +117,3 @@ type DyDoc_TableDocumentBuilder<
     }
   }>;
 };
-
-interface User extends DyDoc_BaseDocumentType {
-  documentType: 'user';
-  userId: string;
-  tenantIds: string[];
-  name: string;
-  age: number;
-}
-
-interface UserGroup extends DyDoc_BaseDocumentType {
-  documentType: 'user-group';
-  tenantId: string;
-  groupId: string;
-  userIds: string[];
-}
-
-declare const tableBuilder: DyDoc_TableBuilder;
-
-const myTable = tableBuilder
-  .createTable({ pk: 'RequiredString', sk: 'RequiredString' })
-  .addGlobalSecondaryIndex('1', { pk: 'RequiredString' })
-  .addGlobalSecondaryIndex('2', { pk: 'OptionalString' })
-  .finalizeTableSchema()
-  .addDocumentType((document: User) => ([
-    {
-      PK: `USER#${document.userId}`,
-      SK: `DETAILS`,
-      GSI_1_PK: `` // Not needed here
-    },
-    ...document.tenantIds.map((tenantId) => ({
-      PK: `TENANT#${tenantId}`,
-      SK: `USER#${document.userId}`,
-      GSI_1_PK: `` // Not needed here
-    }))
-  ]))
-  .addDocumentType((document: UserGroup) => ([
-    {
-      PK: `TENANT#${document.tenantId}`,
-      SK: `USER_GROUP#${document.groupId}`,
-      GSI_1_PK: `USER_GROUP#${document.groupId}`
-    },
-    ...document.userIds.map((userId) => ({
-      PK: `TENANT#${document.tenantId}`,
-      SK: `USER#${userId}#USER_GROUP#${document.groupId}`,
-      GSI_1_PK: `USER_GROUP#${document.groupId}`
-    }))
-  ]))
