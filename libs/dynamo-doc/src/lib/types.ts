@@ -23,9 +23,10 @@ T_sk extends DyDoc_ColumnConfForSecondaryKey
 }
 
 type DyDoc_TableConfiguration = {
+  attributes: { [k: string]: DyDoc_ColumnConf },
   gsi: string[],
   lsi: string[],
-  attributes: { [k: string]: DyDoc_ColumnConf }
+  documents: { [documentType: string]: unknown },
 }
 
 type DyDoc_RecordType<
@@ -53,16 +54,22 @@ export type DyDoc_TableBuilder = {
     T_pk extends DyDoc_ColumnConfForPrimaryKey,
     T_sk extends DyDoc_ColumnConfForPrimaryKey,
     T_keyConfiguration extends DyDoc_PrimaryKeyConfiguration<T_pk, T_sk>
-  >(config: T_keyConfiguration): DyDoc_TableBuilderAdditions<{
-    gsi: [],
-    lsi: [],
+  >(config: T_keyConfiguration): DyDoc_TableSchemaBuilder<{
     attributes: {
       [k in keyof T_keyConfiguration & string as Uppercase<k>]: T_keyConfiguration[k] extends DyDoc_ColumnConf ? T_keyConfiguration[k] : never
-    }
+    },
+    gsi: [],
+    lsi: [],
+    documents: { [k in never]: never };
   }>;
 };
 
-type DyDoc_TableBuilderAdditions<
+/**
+ * DyDoc_TableSchemaBuilder
+ * 
+ * User can specify columns for GSIs, LSIs and TTLs
+ */
+type DyDoc_TableSchemaBuilder<
   T_table extends DyDoc_TableConfiguration,
 > = {
   addGlobalSecondaryIndex<
@@ -73,9 +80,7 @@ type DyDoc_TableBuilderAdditions<
   >(
     name: T_name extends T_table['gsi'][number] ? `GSI '${T_name}' already exists!` : T_name,
     config: T_keyConfiguration
-  ): DyDoc_TableBuilderAdditions<{
-    gsi: [...T_table['gsi'], T_name],
-    lsi: [...T_table['lsi']],
+  ): DyDoc_TableSchemaBuilder<{
     attributes: T_table['attributes'] & {
       [
         k in keyof T_keyConfiguration & string
@@ -83,19 +88,79 @@ type DyDoc_TableBuilderAdditions<
       ]: T_keyConfiguration[k] extends DyDoc_ColumnConf 
         ? T_keyConfiguration[k]
         : never
-    }
+    },
+    gsi: [...T_table['gsi'], T_name],
+    lsi: [...T_table['lsi']],
+    documents: { [k in never]: never };
   }>;
 
-  getConfiguration(): T_table;
+  finalizeTableSchema(): DyDoc_TableDocumentBuilder<T_table>;
+};
+
+type DyDoc_BaseDocumentType = {
+  documentType: string;
+};
+
+type DyDoc_TableDocumentBuilder<
+  T_table extends DyDoc_TableConfiguration,
+  > = {
+  addDocumentType<
+    T_DocumentInterface extends DyDoc_BaseDocumentType
+  >(
+    mapping: (document: T_DocumentInterface) => DyDoc_RecordType<T_table>[]
+  ): DyDoc_TableDocumentBuilder<{
+    attributes: T_table['attributes'],
+    gsi: T_table['gsi'],
+    lsi: T_table['lsi'],
+    documents: T_table['documents'] & {
+      [key in T_DocumentInterface['documentType']]: (document: T_DocumentInterface) => DyDoc_RecordType<T_table>[]
+    }
+  }>;
+};
+
+interface User extends DyDoc_BaseDocumentType {
+  documentType: 'user';
+  userId: string;
+  tenantIds: string[];
+  name: string;
+  age: number;
+}
+
+interface UserGroup extends DyDoc_BaseDocumentType {
+  documentType: 'user-group';
+  tenantId: string;
+  groupId: string;
+  userIds: string[];
 }
 
 declare const tableBuilder: DyDoc_TableBuilder;
 
 const myTable = tableBuilder
-  .createTable({ pk: 'RequiredNumber', sk: 'RequiredString' })
-  .addGlobalSecondaryIndex('1', { pk: 'RequiredNumber' })
+  .createTable({ pk: 'RequiredString', sk: 'RequiredString' })
+  .addGlobalSecondaryIndex('1', { pk: 'RequiredString' })
   .addGlobalSecondaryIndex('2', { pk: 'OptionalString' })
-
-const myTableConfiguration = myTable.getConfiguration();
-
-type MyRecordType = DyDoc_RecordType<typeof myTableConfiguration>
+  .finalizeTableSchema()
+  .addDocumentType((document: User) => ([
+    {
+      PK: `USER#${document.userId}`,
+      SK: `DETAILS`,
+      GSI_1_PK: `` // Not needed here
+    },
+    ...document.tenantIds.map((tenantId) => ({
+      PK: `TENANT#${tenantId}`,
+      SK: `USER#${document.userId}`,
+      GSI_1_PK: `` // Not needed here
+    }))
+  ]))
+  .addDocumentType((document: UserGroup) => ([
+    {
+      PK: `TENANT#${document.tenantId}`,
+      SK: `USER_GROUP#${document.groupId}`,
+      GSI_1_PK: `USER_GROUP#${document.groupId}`
+    },
+    ...document.userIds.map((userId) => ({
+      PK: `TENANT#${document.tenantId}`,
+      SK: `USER#${userId}#USER_GROUP#${document.groupId}`,
+      GSI_1_PK: `USER_GROUP#${document.groupId}`
+    }))
+  ]))
