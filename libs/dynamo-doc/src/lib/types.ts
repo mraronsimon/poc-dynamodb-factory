@@ -22,7 +22,7 @@ T_sk extends DyDoc_ColumnConfForSecondaryKey
   sk?: T_sk;
 }
 
-type DyDoc_TableConfiguration = {
+export type DyDoc_TableConfiguration = {
   attributes: { [k: string]: DyDoc_ColumnConf },
   gsi: string[],
   lsi: string[],
@@ -69,7 +69,7 @@ export type DyDoc_TableBuilder = {
  * 
  * User can specify columns for GSIs, LSIs and TTLs
  */
-type DyDoc_TableSchemaBuilder<
+export type DyDoc_TableSchemaBuilder<
   T_table extends DyDoc_TableConfiguration,
 > = {
   addGlobalSecondaryIndex<
