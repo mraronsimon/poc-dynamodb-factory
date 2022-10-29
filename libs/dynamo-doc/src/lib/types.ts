@@ -66,7 +66,7 @@ export type DyDoc_TableBuilder = {
 
 /**
  * DyDoc_TableSchemaBuilder
- * 
+ *
  * User can specify columns for GSIs, LSIs and TTLs
  */
 export type DyDoc_TableSchemaBuilder<

@@ -39,4 +39,4 @@ export const schemaTableBuilderFactory = (
   }
 });
 
-// export const TableBuilder = schemaTableBuilderFactory(documentBuilderFactory);
+export const TableBuilder = schemaTableBuilderFactory(documentBuilderFactory);
