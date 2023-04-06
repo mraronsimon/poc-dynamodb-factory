@@ -1,0 +1,22 @@
+{
+  "TableSchemas": {
+    "ExampleTableSchema": {
+      "PrimaryKey": {
+        "PK": "RequiredNumber",
+        "SK": "RequiredString"
+      },
+      "LocalSecondaryIndexes": {
+        "1": {
+          "SK": "OptionalString"
+        }
+      },
+      "GlobalSecondaryIndexes": {
+        "1": {
+          "PK": "RequiredString",
+          "SK": "OptionalString"
+        }
+      },
+      "TimeToLive": true
+    }
+  }
+}
