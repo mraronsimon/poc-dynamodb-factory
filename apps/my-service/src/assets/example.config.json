@@ -1,22 +1,22 @@
 {
   "TableSchemas": {
-    "ExampleTableSchema": {
+    "Example": {
       "PrimaryKey": {
-        "PK": "RequiredNumber",
-        "SK": "RequiredString"
+        "PK_T": "RN",
+        "SK_T": "RS"
       },
-      "LocalSecondaryIndexes": {
-        "1": {
-          "SK": "OptionalString"
-        }
+      "LSI_1": {
+        "SK_T": "OS",
+        "I_A": "Example"
       },
-      "GlobalSecondaryIndexes": {
-        "1": {
-          "PK": "RequiredString",
-          "SK": "OptionalString"
-        }
+      "GSI_1": {
+        "PK_T": "RS",
+        "SK_T": "OS",
+        "I_A": "Example"
       },
-      "TimeToLive": true
+      "TTL": {
+        "enable": "true"
+      }
     }
   }
 }

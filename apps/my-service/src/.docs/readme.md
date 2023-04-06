@@ -94,3 +94,18 @@ IDEAS
 
 * S3 URL as a GSI_PK? S3 generated uuid -> key prefix/suffix? -> GSI_SK, GSI_PK?
   * document-type in the path?
+
+## DocumentTypes
+
+```JSON
+{
+  "TableSchemas": {
+    ...
+  },
+  "DocumentTypes": {
+    // import { IUser } from "..."
+    "User": "app/interfaces/user.ts",
+    "UserGroup": "app/interfaces/user-group.ts"
+  }
+}
+```
