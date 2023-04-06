@@ -62,7 +62,7 @@ STATEMENTS
 CONSTRAINTS
 * cannot modify PK, SK
 * cannot modify/create LSI
-* create/modify GSI attr types
+* create/modify/delete GSI attr types
   * previous existing GSI will be deleted
   * cannot search by that GSI until repopulation (fan-out scan and map)
 
@@ -78,4 +78,12 @@ IDEAS
   * deterministic mapping? change insensitive?
   * deploy-state file?
   * (GSI_PK and GSI_SK)20*2+(LSI_SK)5+(PK and SK)2+(TTL)1+(DOC_URL or DOC)1 = **50**
-* compress data field
+* compress data field (GZIP)
+* document indexes over multiple table
+* GSI supports only eventually consistent read/write.
+  * better to manage multiple items as a self managed secondary-index?
+* LSI has large overhead because it's store the copies of derived attributes like PK, SK
+  * LSI SK SHOULDN'T be unique
+
+* S3 URL as a GSI_PK? S3 generated uuid -> key prefix/suffix? -> GSI_SK, GSI_PK?
+  * document-type in the path?
