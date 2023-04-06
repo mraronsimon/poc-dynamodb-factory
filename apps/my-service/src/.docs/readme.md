@@ -32,18 +32,25 @@
   "TableSchemas": {
     "ExampleTableSchema": {
       "PrimaryKey": {
-        "PK": "RequiredNumber",
-        "SK": "RequiredString"
+        // PartitionKey Type: R (Required), O (Optional), N (Number), S (String)
+        "PK_T": "RN",
+        // SortKey Type
+        "SK_T": "RS"
+        // PK_A - PartitionKey Alias
+        // SK_A - SortKey Alias
       },
       "LSI_1": {
-        "SK": "OptionalString", // LSI_Example_SK
-        "alias": "Example"
+        "SK_T": "OS", // LSI_Example_SK
+        // Index Alias
+        "I_A": "Example"
       },
       // LSI_2, LSI_3, LSI_4, LSI_5
       "GSI_1": {
-        "PK": "RequiredString", // GSI_Example_PK
-        "SK": "OptionalString", // GSI_Example_SK
-        "alias": "Example"
+        "PK_T": "RequiredString", // GSI_Example_PK
+        "SK_T": "OptionalString", // GSI_Example_SK
+        "I_A": "Example"
+        // PK_A - PartitionKey Alias ??
+        // SK_A - SortKey Alias ??
       },
       // GSI_2, ..., GSI_20
       "TTL": {
